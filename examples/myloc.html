@@ -27,6 +27,7 @@
     });
     
     function locateMe(){
+      window.mymap.removeMarkers();
       GMaps.geolocate({
         success: function(position){
           window.mymap.setCenter(position.coords.latitude, position.coords.longitude);
@@ -75,16 +76,17 @@
       findAddress($('#origin-input').val(), function(addr){
                                           //console.log(addr);
                                           window.myaddresses.push(addr);
+                                          window._origin = addr;
                                           //console.log(window.myaddresses);
                                         });
       //console.log(window.myaddresses)
       findAddress($('#destination-input').val(), function(addr){
                                           window.myaddresses.push(addr);
+                                          window._dest = addr;
                                           //console.log(window.myaddresses[0]);
                                           //console.log(window.myaddresses[1]);
                                           window.mymap.drawRoute({
-                                          //origin: [-12.044012922866312, -77.02470665341184],
-                                          //destination: [-12.090814532191756, -77.02271108990476],
+                                          
                                           origin: window.myaddresses[0],
                                           destination: window.myaddresses[1],
                                           travelMode: 'driving',
@@ -115,36 +117,21 @@
                                               pts.push([s.lng(), s.lat()])
                                               //console.log("--")
                                             }
-                                            //console.log(pts.length)
-                                            //console.log(pts)
+    
                                             lineStr = formatLineString(pts)
-                                            //console.log(lineStr)
-
-                                            // format query and call the fuel api
-                                            // var request = "GET /api/alt-fuel-stations/v1/nearby-route.json?api_key=IihZPcWQdlebyz2JIz8F1mOh4IWqDW2ybB9nGbsu";
-
-          //var lineStr2 = "LINESTRING(-105.22109+39.75553,-105.22133+39.7554,-105.22059+39.75459,-105.21959+39.75351)"
-          // var lineStr3 = "LINESTRING(+40.72254-73.22167,+40.74055-73.15201,+40.78062-73.22221)"
-          //console.log(lineStr3)
-          var gasType = $('#gasType').val();
-          console.log(gasType);
+                             
           $.ajax({
-           //url:"http://developer.nrel.gov/api/alt-fuel-stations/v1/nearby-route.json?api_key&distance&route=LINESTRING(-105.22109+39.75553,-105.22133+39.7554,-105.22059+39.75459,-105.21959+39.75351)",
-           //data:{api_key:"DEMO_KEY", distance:"5"},
-
            url:"http://developer.nrel.gov/api/alt-fuel-stations/v1/nearby-route.json?route=" + lineStr,
-           data:{api_key:"DEMO_KEY", distance:"2", fuel_type:gasType},
+           data:{api_key:"DEMO_KEY", distance:"2",fuel_type:"all"},
            type:'get',
            success:function(res){
               console.log(res.fuel_stations)
+              window.stations =res.fuel_stations;
+
                for (var i = 0; i < res.fuel_stations.length; i++){
                  var station = res.fuel_stations[i]
-                 //console.log(station)
-                 // console.log(station.latitude); 
-                 // console.log(station.longitude); 
-                  console.log("--");
-                  //var pinImage = new google.maps.MarkerImage("http://www.googlemapsmarkers.com/v1/009900/");<br>
-                  window.mymap.addMarker({
+                 
+                  var stationMarker = window.mymap.addMarker({
                     lat: station.latitude,
                     lng: station.longitude,
                     //icon:pinImage,
@@ -156,8 +143,10 @@
                       alert('You clicked in this fuel');
                     }
                   });
-                  window.mymap.fitZoom();
+                  window._markers.push(stationMarker);
+                  
                }
+               window.mymap.fitZoom();
                
            },
            error: function (xhr, ajaxOptions, thrownError) {
@@ -171,43 +160,73 @@
                                         });
 
                                         });
-      //console.log(window.myaddresses)
-
-      // window.mymap.drawRoute({
-      //   origin: [-12.044012922866312, -77.02470665341184],
-      //   destination: [-12.044012922866312, -79.02470665341184],
-      //   //origin: findAddress($('#origin-input').val()),
-      //   //destination: findAddress($('#destination-input').val()),
-      //   travelMode: 'driving',
-      //   strokeColor: '#131540',
-      //   strokeOpacity: 0.6,
-      //   strokeWeight: 6
-      // });
     }
 
     function findAddress(str, callback){
-      // console.log(str)
       var latlng = -1
       GMaps.geocode({
         address: str,
         callback: function(results, status) {
-        if (status == 'OK') {
-          latlng = results[0].geometry.location;
-          // console.log(latlng.lat())
-          // console.log(latlng.lng())
-          // window.mymap.setCenter(latlng.lat(), latlng.lng());
-          window.mymap.addMarker({
-          lat: latlng.lat(),
-          lng: latlng.lng()
-        });
-        callback([latlng.lat(), latlng.lng()])
-        //latlng = results[1].formatted_address;
+          if (status == 'OK') {
+            latlng = results[0].geometry.location;
+            window.mymap.addMarker({
+            lat: latlng.lat(),
+            lng: latlng.lng()
+          });
+          callback([latlng.lat(), latlng.lng()])
+          //latlng = results[1].formatted_address;
+          }
         }
-        //console.log(addresses);
-      }
       });
     }
+    function changeGas()
+    {
+      //console.log("jin");
+      var gasType = $('#gasType').val();
+      //console.log(gasType);
+      if(window.stations == null)
+        return;
+      //console.log("maker.leg"+window._markers.length);
+      window.mymap.removeMarkers();
 
+      window.mymap.addMarker({
+            lat: window._origin[0],
+            lng: window._origin[1],
+            title: 'orig',
+            click: function(e) {
+              alert('You clicked in this origin');
+            }
+          });
+      
+      window.mymap.addMarker({
+            lat: window._dest[0],
+            lng: window._dest[1],
+            title: 'dest',
+            click: function(e) {
+              alert('You clicked in this dest');
+            }
+          });
+
+
+      console.log("stations,leg:" + window.stations.length);
+      for (var i = 0; i < window.stations.length; i++){
+         var station = window.stations[i]
+         if(gasType != "all" && (station.fuel_type_code != gasType))
+          continue;
+          //console.log(station.fuel_type_code);
+          window.mymap.addMarker({
+            lat: station.latitude,
+            lng: station.longitude,
+            //icon:pinImage,
+            icon:"../gmapMarkers/green_MarkerA.png",
+            title: 'fuel',
+            click: function(e) {
+              alert('You clicked in this fuel');
+            }
+          });
+          window.mymap.fitZoom();
+       }
+    }
   </script>
   <style>
   #floating-panel {
@@ -272,9 +291,9 @@
   </div>
   <div id="floating-panel3">
     <b>choose gas type: </b>
-    <select id="gasType">
+    <select id="gasType" onchange="changeGas()">
         <option value="all">all</option>
-        <option value="BD">DB</option>
+        <option value="BD">BD</option>
         <option value="CNG">CNG</option>
         <option value="E85">E85</option>
         <option value="ELEC">ELEC</option>
