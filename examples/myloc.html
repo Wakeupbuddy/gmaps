@@ -47,35 +47,39 @@
       })
     };
 
-    function Route(origin, destintation, travelMode='driving'){
+    function routeMe(){
+      var origin = findAddress($('#origin-input').val());
+      var dest = findAddress($('#destination-input').val());
+      console.log(origin)
+
       window.mymap.drawRoute({
         origin: origin,
-        destination: destintation,
-        travelMode: travelMode,
+        destination: dest,
+        travelMode: 'driving',
         strokeColor: '#131540',
         strokeOpacity: 0.6,
         strokeWeight: 6
       });
     }
 
-    function findAddress(){
+    function findAddress(str){
+      console.log(str)
+      var latlng = -1
       GMaps.geocode({
-        address: $('#address').val(),
+        address: str,
         callback: function(results, status) {
         if (status == 'OK') {
           var latlng = results[0].geometry.location;
+          console.log(latlng)
           // window.mymap.setCenter(latlng.lat(), latlng.lng());
           window.mymap.addMarker({
           lat: latlng.lat(),
           lng: latlng.lng()
         });
-          return latlng;
-        }
-        else {
-          return -1;
         }
       }
       });
+      return results[0].geometry.location;
     }
 
   </script>
@@ -93,18 +97,47 @@
           line-height: 30px;
           padding-left: 10px;
         }  
+
+    #floating-panel2 {
+          position: absolute;
+          top: 60px;
+          left: 75%;
+          z-index: 5;
+          background-color: #fff;
+          padding: 5px;
+          border: 1px solid #999;
+          text-align: center;
+          font-family: 'Roboto','sans-serif';
+          line-height: 30px;
+          padding-left: 10px;
+        }  
   </style>
 </head>
 
 
 <body>
+  <input id="origin-input" class="controls" type="text"
+        placeholder="Enter an origin location">
+
+  <input id="destination-input" class="controls" type="text"
+        placeholder="Enter a destination location">
+
+  <div id="floating-panel2">
+    <input id="route" type="button" value="route me">
+  </div>
+  
   <div id="floating-panel">
       <input id="locate" type="button" value="locate me">
   </div>
 
+
+
   <script type="text/javascript">
       document.getElementById('locate').addEventListener('click', function() {
           locateMe();});
+
+      document.getElementById('route').addEventListener('click', function() {        
+          routeMe();});      
   </script>
 
   <!-- <button onclick="locateMe()">Click me</button> -->
