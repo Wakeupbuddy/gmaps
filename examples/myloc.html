@@ -29,10 +29,6 @@
     function locateMe(){
       GMaps.geolocate({
         success: function(position){
-          // alert('works');
-          // console.log(typeof(window.mymap.setCenter));
-          // console.log(lat:position.coords.latitude.toString());
-          // alert('work. latitude: {lat}, longtitude: {lon}'.formatUnicorn({lat:position.coords.latitude, lon:position.coords.longitude}))
           window.mymap.setCenter(position.coords.latitude, position.coords.longitude);
           window.mymap.addMarker({
             lat: position.coords.latitude,
@@ -83,12 +79,9 @@
                                         });
       //console.log(window.myaddresses)
       findAddress($('#destination-input').val(), function(addr){
-                                          //console.log(addr);
                                           window.myaddresses.push(addr);
                                           //console.log(window.myaddresses[0]);
                                           //console.log(window.myaddresses[1]);
-                                          //window.mymap.cleanRoute();
-                                         // window.mymap.markerClusterer.clearMarkers();
                                           window.mymap.drawRoute({
                                           //origin: [-12.044012922866312, -77.02470665341184],
                                           //destination: [-12.090814532191756, -77.02271108990476],
@@ -102,12 +95,8 @@
 
                                           // zoom in
                                           center = [(window.myaddresses[0][0] + window.myaddresses[1][0])/2, (window.myaddresses[0][1] + window.myaddresses[1][1])/2]
-
-                                          window.mymap.setCenter(center[0], center[1]);
-
+                                          window.mymap.fitZoom();
                                           window.mymap.getRoutes({
-                                          //origin: [-12.044012922866312, -77.02470665341184],
-                                          //destination: [-12.090814532191756, -77.02271108990476],
                                           origin: window.myaddresses[0],
                                           destination: window.myaddresses[1],
                                           travelMode: 'driving',
@@ -165,6 +154,7 @@
                       alert('You clicked in this fuel');
                     }
                   });
+                  window.mymap.fitZoom();
                }
                
            }
