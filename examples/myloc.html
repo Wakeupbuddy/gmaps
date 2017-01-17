@@ -12,8 +12,8 @@
     $(document).ready(function(){
       window.mymap = new GMaps({
         el: '#map',
-        lat: -12.043333,
-        lng: -77.028333
+        lat: 40.52835,
+        lng: -74.437367,
       });
 
       //window.mymap.drawRoute({
@@ -73,6 +73,8 @@
     }
 
     function routeMe(){
+      window.mymap.removeMarkers();
+      window.mymap.cleanRoute();
       window.myaddresses = [];
       findAddress($('#origin-input').val(), function(addr){
                                           //console.log(addr);
@@ -85,6 +87,8 @@
                                           window.myaddresses.push(addr);
                                           //console.log(window.myaddresses[0]);
                                           //console.log(window.myaddresses[1]);
+                                          //window.mymap.cleanRoute();
+                                         // window.mymap.markerClusterer.clearMarkers();
                                           window.mymap.drawRoute({
                                           //origin: [-12.044012922866312, -77.02470665341184],
                                           //destination: [-12.090814532191756, -77.02271108990476],
@@ -95,6 +99,12 @@
                                           strokeOpacity: 0.6,
                                           strokeWeight: 6
                                         });
+
+                                          // zoom in
+                                          center = [(window.myaddresses[0][0] + window.myaddresses[1][0])/2, (window.myaddresses[0][1] + window.myaddresses[1][1])/2]
+
+                                          window.mymap.setCenter(center[0], center[1]);
+
                                           window.mymap.getRoutes({
                                           //origin: [-12.044012922866312, -77.02470665341184],
                                           //destination: [-12.090814532191756, -77.02271108990476],
@@ -132,7 +142,7 @@
            //data:{api_key:"DEMO_KEY", distance:"5"},
 
            url:"http://developer.nrel.gov/api/alt-fuel-stations/v1/nearby-route.json?route=" + lineStr,
-           data:{api_key:"DEMO_KEY", distance:"5"},
+           data:{api_key:"DEMO_KEY", distance:"2"},
            type:'get',
            success:function(res){
               console.log(res.fuel_stations)
@@ -141,7 +151,20 @@
                  //console.log(station)
                  // console.log(station.latitude); 
                  // console.log(station.longitude); 
-                  console.log("--")
+                  console.log("--");
+                  //var pinImage = new google.maps.MarkerImage("http://www.googlemapsmarkers.com/v1/009900/");<br>
+                  window.mymap.addMarker({
+                    lat: station.latitude,
+                    lng: station.longitude,
+                    //icon:pinImage,
+                    icon:"../gmapMarkers/green_MarkerA.png",
+                    //primaryColor:"#0000FF",
+                    //details: {icon:"../gmapMarkers/green_MarkerA.png"},
+                    title: 'fuel',
+                    click: function(e) {
+                      alert('You clicked in this fuel');
+                    }
+                  });
                }
                
            }
@@ -224,10 +247,10 @@
 
 <body>
   <input id="origin-input" class="controls" type="text"
-        placeholder="74 marvin lane", value="74 marvin lane">
+        placeholder="74 marvin lane", value="74 marvin lane, piscataway">
 
   <input id="destination-input" class="controls" type="text"
-        placeholder="617 bowser road", value="617 bowser road">
+        placeholder="617 bowser road", value="617 bowser road, piscataway">
 
   <div id="floating-panel2">
     <input id="route" type="button" value="route me">
