@@ -15,6 +15,15 @@
         lat: -12.043333,
         lng: -77.028333
       });
+
+      //window.mymap.drawRoute({
+      //   origin: [-12.044012922866312, -77.02470665341184],
+      //   destination: [-12.044012922866312, -79.02470665341184],
+      //   travelMode: 'driving',
+      //   strokeColor: '#131540',
+      //   strokeOpacity: 0.6,
+      //   strokeWeight: 6
+      // });
     });
     
     function locateMe(){
@@ -46,40 +55,138 @@
         }
       })
     };
+    function formatLineString(pts){
+      var retStr = "LINESTRING("
+      
+      function myformat(n) {
+        return (n>0?'+':'') + n;
+      }
 
-    function routeMe(){
-      var origin = findAddress($('#origin-input').val());
-      var dest = findAddress($('#destination-input').val());
-      console.log(origin)
-
-      window.mymap.drawRoute({
-        origin: origin,
-        destination: dest,
-        travelMode: 'driving',
-        strokeColor: '#131540',
-        strokeOpacity: 0.6,
-        strokeWeight: 6
-      });
+      for(var i=0; i < pts.length; i++){
+        var pt = pts[i]
+        retStr = retStr + myformat(pt[0]) + myformat(pt[1]);
+        if (i < pts.length-1){
+          retStr = retStr + ","
+        }
+      } 
+      return retStr + ")"
     }
 
-    function findAddress(str){
-      console.log(str)
+    function routeMe(){
+      window.myaddresses = [];
+      findAddress($('#origin-input').val(), function(addr){
+                                          //console.log(addr);
+                                          window.myaddresses.push(addr);
+                                          //console.log(window.myaddresses);
+                                        });
+      //console.log(window.myaddresses)
+      findAddress($('#destination-input').val(), function(addr){
+                                          //console.log(addr);
+                                          window.myaddresses.push(addr);
+                                          //console.log(window.myaddresses[0]);
+                                          //console.log(window.myaddresses[1]);
+                                          window.mymap.drawRoute({
+                                          //origin: [-12.044012922866312, -77.02470665341184],
+                                          //destination: [-12.090814532191756, -77.02271108990476],
+                                          origin: window.myaddresses[0],
+                                          destination: window.myaddresses[1],
+                                          travelMode: 'driving',
+                                          strokeColor: '#131540',
+                                          strokeOpacity: 0.6,
+                                          strokeWeight: 6
+                                        });
+                                          window.mymap.getRoutes({
+                                          //origin: [-12.044012922866312, -77.02470665341184],
+                                          //destination: [-12.090814532191756, -77.02271108990476],
+                                          origin: window.myaddresses[0],
+                                          destination: window.myaddresses[1],
+                                          travelMode: 'driving',
+                                          callback: function(e){
+                                            route = new GMaps.Route({
+                                              map: window.mymap,
+                                              route: e[0],
+                                              strokeColor: '#336699',
+                                              strokeOpacity: 0.5,
+                                              strokeWeight: 10
+                                            });
+                                            var pts = []
+                                            for(var s of route.route.overview_path){
+                                              //console.log(s.lat())
+                                              //console.log(s.lng())
+                                              pts.push([s.lng(), s.lat()])
+                                              //console.log("--")
+                                            }
+                                            //console.log(pts.length)
+                                            //console.log(pts)
+                                            lineStr = formatLineString(pts)
+                                            //console.log(lineStr)
+
+                                            // format query and call the fuel api
+                                            var request = "GET /api/alt-fuel-stations/v1/nearby-route.json?api_key=IihZPcWQdlebyz2JIz8F1mOh4IWqDW2ybB9nGbsu";
+
+          //var lineStr2 = "LINESTRING(-105.22109+39.75553,-105.22133+39.7554,-105.22059+39.75459,-105.21959+39.75351)"
+          var lineStr3 = "LINESTRING(+40.72254-73.22167,+40.74055-73.15201,+40.78062-73.22221)"
+          //console.log(lineStr3)
+          $.ajax({
+           //url:"http://developer.nrel.gov/api/alt-fuel-stations/v1/nearby-route.json?api_key&distance&route=LINESTRING(-105.22109+39.75553,-105.22133+39.7554,-105.22059+39.75459,-105.21959+39.75351)",
+           //data:{api_key:"DEMO_KEY", distance:"5"},
+
+           url:"http://developer.nrel.gov/api/alt-fuel-stations/v1/nearby-route.json?route=" + lineStr,
+           data:{api_key:"DEMO_KEY", distance:"5"},
+           type:'get',
+           success:function(res){
+              console.log(res.fuel_stations)
+               for (var i = 0; i < res.fuel_stations.length; i++){
+                 var station = res.fuel_stations[i]
+                 //console.log(station)
+                 // console.log(station.latitude); 
+                 // console.log(station.longitude); 
+                  console.log("--")
+               }
+               
+           }
+       }); 
+     
+   
+                                        }
+                                        });
+
+                                        });
+      //console.log(window.myaddresses)
+
+      // window.mymap.drawRoute({
+      //   origin: [-12.044012922866312, -77.02470665341184],
+      //   destination: [-12.044012922866312, -79.02470665341184],
+      //   //origin: findAddress($('#origin-input').val()),
+      //   //destination: findAddress($('#destination-input').val()),
+      //   travelMode: 'driving',
+      //   strokeColor: '#131540',
+      //   strokeOpacity: 0.6,
+      //   strokeWeight: 6
+      // });
+    }
+
+    function findAddress(str, callback){
+      // console.log(str)
       var latlng = -1
       GMaps.geocode({
         address: str,
         callback: function(results, status) {
         if (status == 'OK') {
-          var latlng = results[0].geometry.location;
-          console.log(latlng)
+          latlng = results[0].geometry.location;
+          // console.log(latlng.lat())
+          // console.log(latlng.lng())
           // window.mymap.setCenter(latlng.lat(), latlng.lng());
           window.mymap.addMarker({
           lat: latlng.lat(),
           lng: latlng.lng()
         });
+        callback([latlng.lat(), latlng.lng()])
+        //latlng = results[1].formatted_address;
         }
+        //console.log(addresses);
       }
       });
-      return results[0].geometry.location;
     }
 
   </script>
@@ -117,10 +224,10 @@
 
 <body>
   <input id="origin-input" class="controls" type="text"
-        placeholder="Enter an origin location">
+        placeholder="74 marvin lane", value="74 marvin lane">
 
   <input id="destination-input" class="controls" type="text"
-        placeholder="Enter a destination location">
+        placeholder="617 bowser road", value="617 bowser road">
 
   <div id="floating-panel2">
     <input id="route" type="button" value="route me">
