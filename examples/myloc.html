@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>GMaps.js &mdash; Geolocation</title>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+  <script type="text/javascript" src="../gmaps.js"></script>
+  <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.3.0/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="examples.css" />
+  <script type="text/javascript">
+    $(document).ready(function(){
+      window.mymap = new GMaps({
+        el: '#map',
+        lat: -12.043333,
+        lng: -77.028333
+      });
+    });
+    
+    function locateMe(){
+      GMaps.geolocate({
+        success: function(position){
+          // alert('works');
+          // console.log(typeof(window.mymap.setCenter));
+          // console.log(lat:position.coords.latitude.toString());
+          // alert('work. latitude: {lat}, longtitude: {lon}'.formatUnicorn({lat:position.coords.latitude, lon:position.coords.longitude}))
+          window.mymap.setCenter(position.coords.latitude, position.coords.longitude);
+          window.mymap.addMarker({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            title: 'me',
+            click: function(e) {
+              alert('You clicked in this marker');
+            }
+          });
+
+        },
+        error: function(error){
+          alert('Geolocation failed: '+error.message);
+        },
+        not_supported: function(){
+          alert("Your browser does not support geolocation");
+        },
+        always: function(){
+          alert("Done!");
+        }
+      })
+    };
+
+    function Route(origin, destintation, travelMode='driving'){
+      window.mymap.drawRoute({
+        origin: origin,
+        destination: destintation,
+        travelMode: travelMode,
+        strokeColor: '#131540',
+        strokeOpacity: 0.6,
+        strokeWeight: 6
+      });
+    }
+
+    function findAddress(){
+      GMaps.geocode({
+        address: $('#address').val(),
+        callback: function(results, status) {
+        if (status == 'OK') {
+          var latlng = results[0].geometry.location;
+          // window.mymap.setCenter(latlng.lat(), latlng.lng());
+          window.mymap.addMarker({
+          lat: latlng.lat(),
+          lng: latlng.lng()
+        });
+          return latlng;
+        }
+        else {
+          return -1;
+        }
+      }
+      });
+    }
+
+  </script>
+  <style>
+  #floating-panel {
+          position: absolute;
+          top: 10px;
+          left: 75%;
+          z-index: 5;
+          background-color: #fff;
+          padding: 5px;
+          border: 1px solid #999;
+          text-align: center;
+          font-family: 'Roboto','sans-serif';
+          line-height: 30px;
+          padding-left: 10px;
+        }  
+  </style>
+</head>
+
+
+<body>
+  <div id="floating-panel">
+      <input id="locate" type="button" value="locate me">
+  </div>
+
+  <script type="text/javascript">
+      document.getElementById('locate').addEventListener('click', function() {
+          locateMe();});
+  </script>
+
+  <!-- <button onclick="locateMe()">Click me</button> -->
+  <h1>GMaps.js &mdash; Geolocation</h1>
+  <div class="row">
+    <div class="span11">
+      <div id="map"></div>
+    </div>
+    <div class="span6">
+    </div>
+  </div>
+</body>
+</html>
