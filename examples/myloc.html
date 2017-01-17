@@ -121,17 +121,19 @@
                                             //console.log(lineStr)
 
                                             // format query and call the fuel api
-                                            var request = "GET /api/alt-fuel-stations/v1/nearby-route.json?api_key=IihZPcWQdlebyz2JIz8F1mOh4IWqDW2ybB9nGbsu";
+                                            // var request = "GET /api/alt-fuel-stations/v1/nearby-route.json?api_key=IihZPcWQdlebyz2JIz8F1mOh4IWqDW2ybB9nGbsu";
 
           //var lineStr2 = "LINESTRING(-105.22109+39.75553,-105.22133+39.7554,-105.22059+39.75459,-105.21959+39.75351)"
-          var lineStr3 = "LINESTRING(+40.72254-73.22167,+40.74055-73.15201,+40.78062-73.22221)"
+          // var lineStr3 = "LINESTRING(+40.72254-73.22167,+40.74055-73.15201,+40.78062-73.22221)"
           //console.log(lineStr3)
+          var gasType = $('#gasType').val();
+          console.log(gasType);
           $.ajax({
            //url:"http://developer.nrel.gov/api/alt-fuel-stations/v1/nearby-route.json?api_key&distance&route=LINESTRING(-105.22109+39.75553,-105.22133+39.7554,-105.22059+39.75459,-105.21959+39.75351)",
            //data:{api_key:"DEMO_KEY", distance:"5"},
 
            url:"http://developer.nrel.gov/api/alt-fuel-stations/v1/nearby-route.json?route=" + lineStr,
-           data:{api_key:"DEMO_KEY", distance:"2"},
+           data:{api_key:"DEMO_KEY", distance:"2", fuel_type:gasType},
            type:'get',
            success:function(res){
               console.log(res.fuel_stations)
@@ -157,7 +159,11 @@
                   window.mymap.fitZoom();
                }
                
-           }
+           },
+           error: function (xhr, ajaxOptions, thrownError) {
+          alert("data too large");
+          // alert(thrownError);
+      }
        }); 
      
    
@@ -230,7 +236,22 @@
           font-family: 'Roboto','sans-serif';
           line-height: 30px;
           padding-left: 10px;
-        }  
+        } 
+
+    #floating-panel3 {
+      position: absolute;
+      top: 100px;
+      left: 75%;
+      z-index: 5;
+      background-color: #fff;
+      padding: 5px;
+      border: 1px solid #999;
+      text-align: center;
+      font-family: 'Roboto','sans-serif';
+      line-height: 30px;
+      padding-left: 10px;
+    } 
+
   </style>
 </head>
 
@@ -248,6 +269,19 @@
   
   <div id="floating-panel">
       <input id="locate" type="button" value="locate me">
+  </div>
+  <div id="floating-panel3">
+    <b>choose gas type: </b>
+    <select id="gasType">
+        <option value="all">all</option>
+        <option value="BD">DB</option>
+        <option value="CNG">CNG</option>
+        <option value="E85">E85</option>
+        <option value="ELEC">ELEC</option>
+        <option value="HY">HY</option>
+        <option value="LNG">LNG</option>
+        <option value="LPG">LPG</option>
+    </select>
   </div>
 
 
